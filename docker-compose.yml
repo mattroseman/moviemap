@@ -1,0 +1,8 @@
+services:
+  moviemap:
+    build: .
+    image: moviemap
+    container_name: moviemap
+    command: python scrape.py
+    volumes:
+      - .:/app
