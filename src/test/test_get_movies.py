@@ -9,6 +9,7 @@ with open('src/test/test_data/title.basics.tsv.gz', 'rb') as file:
 with open('src/test/test_data/title.ratings.tsv.gz', 'rb') as file:
     RATINGS_CONTENT = file.read()
 
+
 def mock_requests_get(url, *args, **kwargs):
     if 'title.basics.tsv.gz' in url:
         return MagicMock(status_code=200, content=BASICS_CONTENT)

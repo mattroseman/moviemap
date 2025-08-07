@@ -6,7 +6,6 @@ services:
     command: python scrape.py
     volumes:
       - .:/app
-    network_mode: none
 
   mongodb:
     image: mongo:3.4
