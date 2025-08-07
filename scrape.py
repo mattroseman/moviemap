@@ -18,7 +18,17 @@ def get_movies() -> List[dict]:
         movies[tconst].update(ratings.get(tconst, {}))
     print('Ratings merged successfully.')
 
-    return movies
+    movies_list = []
+    for movie_id in movies.keys():
+        movies_list.append({
+            'tconst': movie_id,
+            'title': movies[movie_id]['title'],
+            'originalTitle': movies[movie_id]['originalTitle'],
+            'year': movies[movie_id]['year'],
+            'averageRating': movies[movie_id].get('averageRating', None)
+        })
+
+    return movies_list
 
 def get_basic_movies() -> dict:
     print('Fetching basic movie data...')
@@ -64,3 +74,4 @@ def get_movie_ratings() -> dict:
 
 if __name__ == '__main__':
     movies = get_movies()
+    print(movies[0:10])
