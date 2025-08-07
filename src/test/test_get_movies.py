@@ -2,11 +2,11 @@ import unittest
 from unittest.mock import patch, MagicMock
 import json
 
-import scrape
+import src.get_movies as get_movies
 
-with open('./test_data/title.basics.tsv.gz', 'rb') as file:
+with open('src/test/test_data/title.basics.tsv.gz', 'rb') as file:
     BASICS_CONTENT = file.read()
-with open('./test_data/title.ratings.tsv.gz', 'rb') as file:
+with open('src/test/test_data/title.ratings.tsv.gz', 'rb') as file:
     RATINGS_CONTENT = file.read()
 
 def mock_requests_get(url, *args, **kwargs):
@@ -21,7 +21,7 @@ def mock_requests_get(url, *args, **kwargs):
 class TestScrape(unittest.TestCase):
     @patch('requests.get', side_effect=mock_requests_get)
     def test_scrape(self, mock_get):
-        movies = scrape.get_movies()
+        movies = get_movies.get_movies()
         print(json.dumps(movies[:10], indent=2))
 
         self.assertTrue(len(movies) > 0)
