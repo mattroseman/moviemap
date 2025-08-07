@@ -13,3 +13,8 @@ docker-compose run -it --rm moviemap python -m src.test.test_get_movies
 ```
 
 ## Running
+
+To run just the get_movies.py script,
+```
+docker-compose run -it --rm moviemap python -m src.get_movies
+```
