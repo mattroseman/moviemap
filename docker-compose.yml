@@ -6,6 +6,7 @@ services:
     command: python scrape.py
     volumes:
       - .:/app
+    working_dir: /app
 
   mongodb:
     image: mongo:3.4
