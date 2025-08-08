@@ -3,6 +3,7 @@ get_movies.py holds the logic to request the IMDb movie data sets in TSV form.
 It also queries the review data and merges it.
 """
 from typing import List
+from dataclasses import dataclass, asdict, field
 import io
 import gzip
 import csv
@@ -10,23 +11,45 @@ import json
 
 import requests
 
+from scrape_locations import Location, scrape_locations
+
 IMDB_BASIC_FILE_URL = 'https://datasets.imdbws.com/title.basics.tsv.gz'
 IMDB_RATING_FILE_URL = 'https://datasets.imdbws.com/title.ratings.tsv.gz'
 
 
-def get_movies() -> List[dict]:
+@dataclass
+class Rating:
+    average_rating: float
+    num_votes: int
+
+
+@dataclass
+class Movie:
+    id: str
+    title: str
+    original_title: str
+    year: str
+    rating: Rating = None
+    locations: List[Location] = field(default_factory=list)
+
+    def get_locations(self) -> 'Movie':
+        self.locations = scrape_locations(self.id)
+        return self
+
+
+def get_movies() -> List[Movie]:
     """
     Fetches movie data from public IMDb datasets.
 
-    :return: A list of dictionaries, each representing an IMDb movie
+    Returns: A list of Movies, each representing an IMDb movie
     [
-        {
-            'tconst': 'tt0000001',
-            'title': 'Movie Title',
-            'originalTitle': 'Original Movie Title',
-            'year': '2023',
-            'averageRating': 7.5
-        },
+        Movie(
+            id = 'tt0000001',
+            title = 'Movie Title',
+            original_title = 'Original Movie Title',
+            'year' = '2023',
+            'averageRating' = 7.5
+        ),
         ...
     ]
     """
@@ -35,35 +58,25 @@ def get_movies() -> List[dict]:
 
     print('Merging ratings into movie data...')
     # merge movies with their ratings
-    for tconst in movies.keys():
-        movies[tconst].update(ratings.get(tconst, {}))
+    for id, movie in movies.items():
+        movie.rating = ratings.get(id)
     print('Ratings merged successfully.')
 
     # Convert the dictionary, with movieID keys, to a flat list, with IDs as another key/value pair
-    movies_list = []
-    for movie_id in movies.keys():
-        movies_list.append({
-            'tconst': movie_id,
-            'title': movies[movie_id]['title'],
-            'originalTitle': movies[movie_id]['originalTitle'],
-            'year': movies[movie_id]['year'],
-            'averageRating': movies[movie_id].get('averageRating', None)
-        })
-
-    return movies_list
+    return list(movies.values())
 
 
-def get_basic_movies() -> dict:
+def get_basic_movies() -> dict[str, Movie]:
     """
     Fetches basic movie data from IMDb datasets.
 
-    :return: A dictionary of movies, with the keys being IDs and the values further data
+    Returns: A dict, with the keys being IDs and the values Movie objects
     {
-        'tt0000001': {
-            'title': 'Movie Title',
-            'originalTitle': 'Original Movie Title',
-            'year': '2023'
-        },
+        'tt0000001': Movie(
+            'title' = 'Movie Title',
+            'originalTitle' = 'Original Movie Title',
+            'year' = '2023'
+        ),
         ...
     }
     """
@@ -78,32 +91,33 @@ def get_basic_movies() -> dict:
         reader = csv.DictReader(file, delimiter='\t')
         for row in reader:
             if row['titleType'] == 'movie':
-                movies[row['tconst']] = {
-                    'title': row['primaryTitle'],
-                    'originalTitle': row['originalTitle'],
-                    'year': row['startYear']
-                }
+                movies[row['tconst']] = Movie(
+                    id=row['tconst'],
+                    title=row['primaryTitle'],
+                    original_title=row['originalTitle'],
+                    year=row['startYear']
+                )
 
     print('Basic movie data fetched successfully.')
 
     return movies
 
 
-def get_movie_ratings() -> dict:
+def get_movie_ratings() -> dict[str, Rating]:
     """
     Fetches movie ratings data from IMDb datasets.
 
-    :return: A dictionary of movie ratings, with the keys being IDs and the values being ratings and votes
+    Returns: A dictionary of movie ratings, with the keys being IDs and the values Rating objects
     {
-        'tt0000001': {
-            'averageRating': 7.5,
-            'numVotes': 1000
-        },
+        'tt0000001': Rating(
+            'averageRating' = 7.5,
+            'numVotes' = 1000
+        ),
         ...
     }
     """
     print('Fetching movie ratings data...')
-    ratings = {} 
+    ratings = {}
 
     response = requests.get(IMDB_RATING_FILE_URL)
     if response.status_code != 200:
@@ -112,10 +126,10 @@ def get_movie_ratings() -> dict:
     with gzip.open(io.BytesIO(response.content), 'rt', encoding='utf-8') as file:
         reader = csv.DictReader(file, delimiter='\t')
         for row in reader:
-            ratings[row['tconst']] = {
-                'averageRating': float(row['averageRating']),
-                'numVotes': int(row['numVotes'])
-            }
+            ratings[row['tconst']] = Rating(
+                average_rating=float(row['averageRating']),
+                num_votes=int(row['numVotes'])
+            )
 
     print('Movie ratings data fetched successfully.')
     return ratings
@@ -123,4 +137,4 @@ def get_movie_ratings() -> dict:
 
 if __name__ == '__main__':
     movies = get_movies()
-    print(json.dumps(movies[:10], indent=2))
+    print(json.dumps([asdict(movie) for movie in movies[:10]], indent=2))

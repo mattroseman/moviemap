@@ -2,6 +2,7 @@
 scrape_locations.py holds the logic to scrape the location data of a movie from IMDb.
 """
 from typing import List
+from dataclasses import dataclass
 
 import requests
 from bs4 import BeautifulSoup
@@ -9,13 +10,20 @@ from bs4 import BeautifulSoup
 IMDB_LOCATION_URL_TEMPLATE = 'https://www.imdb.com/title/{movie_id}/locations/'
 
 
-def scrape_locations(movie_id: str) -> List:
+@dataclass
+class Location:
+    name: str
+    description: str
+
+
+def scrape_locations(movie_id: str) -> List[Location]:
     movie_location_url = IMDB_LOCATION_URL_TEMPLATE.format(movie_id=movie_id)
+
     print(f'Scraping locations for movie ID: {movie_id} from {movie_location_url}...')
+
     response = requests.get(movie_location_url, headers={'User-Agent': 'Mozilla/5.0'})
     if response.status_code != 200:
         raise Exception(f"Failed to fetch locations for movie ID {movie_id}. Status code: {response.status_code}")
-
     body = response.text
 
     print('Successfully scraped locations.')
@@ -33,10 +41,10 @@ def scrape_locations(movie_id: str) -> List:
         ):
             continue
 
-        locations.append({
-            'name': location_element.find('a', recursive=False).get_text(strip=True).replace('\n', ''),
-            'description': location_element.find('p', recursive=False).get_text(strip=True).replace('\n', '').strip('()')
-        })
+        locations.append(Location(
+            name=location_element.find('a', recursive=False).get_text(strip=True).replace('\n', ''),
+            description=location_element.find('p', recursive=False).get_text(strip=True).replace('\n', '').strip('()')
+        ))
 
     print('Successfully parsed locations.')
 
@@ -46,4 +54,5 @@ def scrape_locations(movie_id: str) -> List:
 if __name__ == '__main__':
     locations = scrape_locations('tt0056172')
 
-    print(locations)
+    for location in locations:
+        print(location)
