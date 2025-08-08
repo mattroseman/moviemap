@@ -17,6 +17,18 @@ class Location:
 
 
 def scrape_locations(movie_id: str) -> List[Location]:
+    """
+    Scrapes the locations of a movie from IMDb's website.
+
+    Returns: A list of Location objects
+    [
+        Location(
+            name = 'Location Name',
+            description = 'Description of the location'
+        ),
+        ...
+    ]
+    """
     movie_location_url = IMDB_LOCATION_URL_TEMPLATE.format(movie_id=movie_id)
 
     print(f'Scraping locations for movie ID: {movie_id} from {movie_location_url}...')

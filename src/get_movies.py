@@ -47,8 +47,11 @@ def get_movies() -> List[Movie]:
             id = 'tt0000001',
             title = 'Movie Title',
             original_title = 'Original Movie Title',
-            'year' = '2023',
-            'averageRating' = 7.5
+            year = '2023',
+            rating = Rating(
+                average_rating = 7.5,
+                num_votes = 1000
+            ),
         ),
         ...
     ]
@@ -73,9 +76,10 @@ def get_basic_movies() -> dict[str, Movie]:
     Returns: A dict, with the keys being IDs and the values Movie objects
     {
         'tt0000001': Movie(
-            'title' = 'Movie Title',
-            'originalTitle' = 'Original Movie Title',
-            'year' = '2023'
+            id = 'tt0000001',
+            title = 'Movie Title',
+            original_title = 'Original Movie Title',
+            year = '2023'
         ),
         ...
     }
@@ -110,8 +114,8 @@ def get_movie_ratings() -> dict[str, Rating]:
     Returns: A dictionary of movie ratings, with the keys being IDs and the values Rating objects
     {
         'tt0000001': Rating(
-            'averageRating' = 7.5,
-            'numVotes' = 1000
+            average_rating = 7.5,
+            num_votes = 1000
         ),
         ...
     }
