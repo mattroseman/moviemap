@@ -1,1 +1,3 @@
 requests
+debugpy
+BeautifulSoup4
